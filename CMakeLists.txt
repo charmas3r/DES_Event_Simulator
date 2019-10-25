@@ -19,4 +19,6 @@ add_executable(
         FCFS_scheduler.cpp
         FCFS_scheduler.h
         SJF_scheduler.cpp
-        SJF_scheduler.h)
+        SJF_scheduler.h
+        event.cpp
+        event.h)

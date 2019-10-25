@@ -3,11 +3,13 @@
 #include <vector>
 #include <queue>
 
+
+// enum of possible Event types
+enum Type {Process_Arrival, CPU_Burst_Completion, IO_Burst_Completion, Timer_Expiration};
+
 // Event class used for DES simulation
 class Event {
 public:
-    // enum of possible Event types
-    enum Type {Process_Arrival, CPU_Burst_Completion, IO_Burst_Completion, Timer_Expiration};
 
     // The type of an event
     Type type;

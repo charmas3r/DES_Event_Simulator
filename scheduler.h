@@ -1,4 +1,3 @@
-// Remember to add comments to your code
 #pragma once
 #include "event.h"
 #include "PCB.h"

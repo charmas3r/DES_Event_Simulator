@@ -2,8 +2,6 @@
 #include <iostream>
 #include "scheduler.h"
 
-// Remember to add comments to your code
-//
 class FCFSScheduler : public Scheduler
 {
 public:
@@ -15,7 +13,7 @@ public:
 	FCFSScheduler(int nproc, EventQueue* p_event_queue)
 		: Scheduler(nproc, p_event_queue)
 	{
-        //TODO
+		procs.createPCBTable(nproc);
 	}
 
 	/**
