@@ -20,9 +20,49 @@ int main(int argc, char* argv[]) {
     int nproc = 1;		// number of processes to be simulated
     int scheduler_type = 1;
 
+
+    //needed for program to be run via command line
+    // TODO : Uncomment this when completed...
+//    if(argc < 3 )
+//    {
+//        std::cerr << "Must specify the number of processes for simulation and type of scheduler" << std::endl;
+//        std::cerr << "Usage: " << argv[0] << " <np> <scheduler type>" << std::endl;
+//        std::cerr << "scheduler type 1: FCFS, 2: SJF" << std::endl;
+//        exit(1);
+//    } else
+//    {
+//        nproc = atoi(argv[1]);
+//        scheduler_type = atoi(argv[2]);
+//        if(nproc < 1)  // Do some error checking
+//        {
+//            while (nproc < 1) {
+//                std::cerr << "Error: Must start with at least 1 process. Try again." << std::endl << std::endl;
+//                std::cerr<< "How many initial processes to start simulation?"<< std::endl << std::endl;
+//                std::cerr << "Enter selection: " << std::endl;
+//                std::cin.clear();
+//                std::cin >> nproc;
+//                std::cerr << std::endl;
+//            }
+//        }
+//        if(scheduler_type < 1 || scheduler_type > 2)
+//        {
+//            while (scheduler_type < 1 || scheduler_type > 2) {
+//                std::cerr << "Error: Must choose from 2 given types. Try again." << std::endl << std::endl;
+//                std::cerr << "Which scheduling algorithm would you like to use? " << std::endl;
+//                std::cerr << "1) First Come First Serve" << std::endl;
+//                std::cerr << "2) Shortest Job First" << std::endl << std::endl;
+//                std::cerr << "Enter selection: ";
+//                std::cin.clear();
+//                std::cin >> scheduler_type;
+//                std::cerr << std::endl;
+//            }
+//        }
+//    }
+
+
     // This program needs a command-line argument for the number of simulated processes
     // Gather args from user
-
+    // TODO : comment this when completed...
     std::cout << "How many initial processes to start simulation?"<< std::endl << std::endl;
     std::cout << "Enter selection: " << std::endl;
     std::cin >> nproc;
@@ -57,26 +97,6 @@ int main(int argc, char* argv[]) {
     }
 
 
-
-    if(argc < 3 )
-    {
-        std::cerr << "Must specify the number of processes for simulation and type of scheduler" << std::endl;
-        std::cerr << "Usage: " << argv[0] << " <np> <scheduler type>" << std::endl;
-        std::cerr << "scheduler type 1: FCFS, 2: SJF" << std::endl;
-        exit(1);
-    } else
-    {
-        nproc = atoi(argv[1]);
-        scheduler_type = atoi(argv[2]);
-        if(nproc < 1)  // Do some error checking
-        {
-            // TODO
-        }
-        if(scheduler_type < 1 || scheduler_type > 2)
-        {
-            // TODO: error checking
-        }
-    }
     // Create a event queue
     EventQueue event_que;
     const int QUIT_TIME = 300000;	// 300,000 ms = 5 minutes
