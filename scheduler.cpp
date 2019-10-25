@@ -1,13 +1,14 @@
 #include "scheduler.h"
 
-// Add your implementations here
 
+// Constructor creates nproc number of processes with random distribution as described
+// in the assignment. The processes are stored in a PCB table.
 Scheduler::Scheduler(int nproc, EventQueue* p_event_queue)
 {
 	p_EQ = p_event_queue;
 
-	// TODO: Add implementation to create nproc processes with random distribution as described in the assignment
-	// TODO: Those processes should be stored in the PCBTable
+	//random distributions implemented in PCB class
+	procs.createPCBTable(nproc);
 }
 
 /**

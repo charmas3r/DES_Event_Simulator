@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include "scheduler.h"
 
 // Remember to add comments to your code
@@ -14,7 +15,7 @@ public:
 	FCFSScheduler(int nproc, EventQueue* p_event_queue)
 		: Scheduler(nproc, p_event_queue)
 	{
-		// TODO: Add data structures needed for FCFS scheduling
+        //TODO
 	}
 
 	/**

@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 //    }
 
 
-    // This program needs a command-line argument for the number of simulated processes
+    // Temporary prompt for testing
     // Gather args from user
     // TODO : comment this when completed...
     std::cout << "How many initial processes to start simulation?"<< std::endl << std::endl;
@@ -96,7 +96,6 @@ int main(int argc, char* argv[]) {
         std::cerr << std::endl;
     }
 
-
     // Create a event queue
     EventQueue event_que;
     const int QUIT_TIME = 300000;	// 300,000 ms = 5 minutes
@@ -104,11 +103,12 @@ int main(int argc, char* argv[]) {
     Scheduler *p_scheduler;
     if(scheduler_type == 1) {
         std::cout << "****************Simulate FCFS scheduler****************************" << std::endl;
-//		p_scheduler = new FCFSScheduler(nproc, &event_que);
+		p_scheduler = new FCFSScheduler(nproc, &event_que);
+
     } else if (scheduler_type == 2)
     {
         std::cout << "****************Simulate SJF scheduler****************************" << std::endl;
-//		p_scheduler = new SJFScheduler(nproc, &event_que);
+		p_scheduler = new SJFScheduler(nproc, &event_que);
     }
     // TODO: Make sure to add Process_Arrival events of all processes to the event queue
 
