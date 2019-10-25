@@ -16,6 +16,7 @@ public:
     int ReadyQueueWaitingTime;
 
     DES_simulation();
+    void init();
     void FCFS_simulation();
     void SJF_simulation();
 };

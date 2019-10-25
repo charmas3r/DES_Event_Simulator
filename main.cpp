@@ -19,7 +19,9 @@ int main(int argc, char* argv[]) {
 
 	int nproc = 1;		// number of processes to be simulated
 	int scheduler_type = 1;
-	// This program needs a command-line argument for the number of simulated processes  
+
+	// This program needs a command-line argument for the number of simulated processes
+
 	if(argc < 3 )
 	{
 		std::cerr << "Must specify the number of processes for simulation and type of scheduler" << std::endl;
