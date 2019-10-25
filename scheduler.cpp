@@ -8,15 +8,20 @@
 Scheduler::Scheduler(int nproc, EventQueue* p_event_queue)
 {
 	// The queue must be populated with at least one initial event before the while loop
-	// commences.
+	// commences. Add process arrival event for each process
 	p_EQ = p_event_queue;
-	//initializing event with process id = 0 and current time = 0.
-	Event *event = new Event(0, Process_Arrival, 0);
-	p_EQ->push(*event);
+
+	//need to change start time for event to be random start time for process..
+	for (int i = 0; i < nproc; i++) {
+		Event *event = new Event(i, Process_Arrival, i);
+		p_EQ->push(*event);
+	}
 
 	std::clog << "Scheduler: Size of event queue is now: "+ std::to_string(p_EQ->size()) << std::endl;
 
 	//random distributions implemented in PCB class
+	//we'll need to change this to enter each process to the table in the for-loop so we can capture the
+	//random start time and assign it properly to event queue
 	procs.createPCBTable(nproc);
 }
 
@@ -56,6 +61,7 @@ void Scheduler::schedule()
 void Scheduler::handle_proc_arrival(const Event& e)
 {
 	std::clog << "Scheduler: Process arrival handling started." << std::endl;
+
 
 }
 
