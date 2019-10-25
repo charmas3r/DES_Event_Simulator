@@ -7,6 +7,7 @@
 #include "FCFS_scheduler.h"
 
 int main(int argc, char* argv[]) {
+
 	//Print basic information about the program
 	std::cout << "=================================================================" << std::endl;
 	std::cout << "CS 433 Programming assignment 3" << std::endl;
