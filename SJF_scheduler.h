@@ -14,7 +14,7 @@ public:
 	SJFScheduler(int nproc, EventQueue* p_event_queue)
 		: Scheduler(nproc, p_event_queue)
 	{
-		procs.createPCBTable(nproc);
+
 	}
 
 	

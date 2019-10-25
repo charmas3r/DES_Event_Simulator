@@ -105,13 +105,6 @@ int main(int argc, char* argv[]) {
         std::cout << "****************Simulate FCFS scheduler****************************" << std::endl;
 		p_scheduler = new FCFSScheduler(nproc, &event_que);
 		//start simulation
-
-		//The general algorithm of a DES is a while loop which continues as long as there are events remaining in the
-        //event queue to be processed.
-		while (!event_que.empty()) {
-
-		}
-
     } else if (scheduler_type == 2)
     {
         std::cout << "****************Simulate SJF scheduler****************************" << std::endl;
@@ -121,6 +114,8 @@ int main(int argc, char* argv[]) {
 
     int current_time = 0;
     // Main loop of the simulation
+    //The general algorithm of a DES is a while loop which continues as long as there are events remaining in the
+    //event queue to be processed.
     while(!event_que.empty() && current_time < QUIT_TIME) {
         Event e = event_que.top();		// get the next event
         event_que.pop();					// remove the next event from queue

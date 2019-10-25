@@ -14,7 +14,7 @@ Scheduler::Scheduler(int nproc, EventQueue* p_event_queue)
 	Event *event = new Event(0, Process_Arrival, 0);
 	p_EQ->push(*event);
 
-	std::clog << "Scheduler: Size of event queue is now:"+ std::to_string(p_EQ->size()) << std::endl;
+	std::clog << "Scheduler: Size of event queue is now: "+ std::to_string(p_EQ->size()) << std::endl;
 
 	//random distributions implemented in PCB class
 	procs.createPCBTable(nproc);
@@ -46,7 +46,7 @@ void Scheduler::handle_the_event(const Event& e)
 
 void Scheduler::schedule()
 {
-	// TODO: Add your implementation here
+	std::clog << "Scheduler: Processing scheduling (dispatch) initiated. " << std::endl;
 }
 
 /**
@@ -55,7 +55,8 @@ void Scheduler::schedule()
  */
 void Scheduler::handle_proc_arrival(const Event& e)
 {
-	// TODO: Add your implementation here
+	std::clog << "Scheduler: Process arrival handling started." << std::endl;
+
 }
 
 /**
@@ -64,7 +65,7 @@ void Scheduler::handle_proc_arrival(const Event& e)
  */
 void Scheduler::handle_cpu_completion(const Event& e)
 {
-	// TODO: Add your implementation here
+	std::clog << "Scheduler: Cpu completion handling started." << std::endl;
 
 }
 
@@ -74,7 +75,7 @@ void Scheduler::handle_cpu_completion(const Event& e)
  */
 void Scheduler::handle_io_completion(const Event& e)
 {
-	//TODO: Add your implementation here
+	std::clog << "Scheduler: IO completion handling started." << std::endl;
 }
 
 /**
@@ -83,5 +84,5 @@ void Scheduler::handle_io_completion(const Event& e)
  */
 void Scheduler::handle_timer_expiration(const Event& e)
 {
-	// Add your implementation here
+	std::clog << "Scheduler: Timer expiration handling started." << std::endl;
 }
