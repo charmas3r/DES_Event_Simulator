@@ -3,6 +3,18 @@
 #include "PCB.h"
 #include "PCB_table.h"
 
+//Enum class representing cpu state
+enum CPU_State {
+	IDLE,
+	BUSY
+};
+
+// structure for CPU objects
+struct CPU {
+	PCB * CPU_JOB;
+	CPU_State CPU_STATE;
+};
+
 // Base Scheduler Class
 class Scheduler {
 public:
@@ -74,5 +86,10 @@ protected:
 
 	// Pointer to the event queue
 	EventQueue* p_EQ;
+
+	// ReadyQueue of process
+	std::queue<PCB*> ready_queue;
+
+	CPU currentCPU;
 };
 

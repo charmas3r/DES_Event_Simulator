@@ -1,6 +1,7 @@
 #include <iostream>
 #include "scheduler.h"
 #include "event.h"
+#include "random.h"
 
 
 // Constructor creates nproc number of processes with random distribution as described
@@ -8,21 +9,21 @@
 Scheduler::Scheduler(int nproc, EventQueue* p_event_queue)
 {
 	// The queue must be populated with at least one initial event before the while loop
-	// commences. Add process arrival event for each process
+	// commences. Add process arrival event for each process. Random distributions implemented in PCB class
 	p_EQ = p_event_queue;
 
-	//need to change start time for event to be random start time for process..
 	for (int i = 0; i < nproc; i++) {
-		Event *event = new Event(i, Process_Arrival, i);
+		PCB pcb(i);
+		procs.process_list.push_back(pcb);
+
+		Event *event = new Event(i, Process_Arrival, pcb.startTime);
 		p_EQ->push(*event);
 	}
 
-	std::clog << "Scheduler: Size of event queue is now: "+ std::to_string(p_EQ->size()) << std::endl;
+	// Initialize the CPU and start idling. No process dispatched yet.
+	currentCPU.CPU_STATE = IDLE;
 
-	//random distributions implemented in PCB class
-	//we'll need to change this to enter each process to the table in the for-loop so we can capture the
-	//random start time and assign it properly to event queue
-	procs.createPCBTable(nproc);
+	std::clog << "Scheduler: Size of event queue is now: "+ std::to_string(p_EQ->size()) << std::endl;
 }
 
 /**
@@ -49,20 +50,50 @@ void Scheduler::handle_the_event(const Event& e)
 	}
 }
 
+/**
+ * \brief The simulation checks to see if the CPU is idle. If it is, then a process can be selected
+ * from the ready queue and dispatched. Dispatching a process involves assigning that process to the
+ * CPU, creating an event for the time when its CPU burst will complete, and adding that event to the
+ * event queue
+ * \param e Arrival event to be processed
+ */
 void Scheduler::schedule()
 {
 	std::clog << "Scheduler: Processing scheduling (dispatch) initiated. " << std::endl;
+	//first check if CPU is idle and the queue isn't empty
+	if (currentCPU.CPU_STATE == IDLE && !ready_queue.empty()) {
+		PCB *pcb = ready_queue.front();
+		ready_queue.pop();
+		//dispatch to CPU
+		currentCPU.CPU_JOB = pcb;
+		//set the CPU state to BUSY
+		currentCPU.CPU_STATE = BUSY;
+		//set process state also
+		pcb->processState = RUNNING;
+
+		//next we need to create the event for the time when the CPU burst will complete and add to
+		//event queue ..
+
+	}
+
 }
 
 /**
- * \brief 
- * \param e 
+ * \brief When this event is handled, the process is added to the ready queue (a separate queue, don’t
+ * confuse it with the event queue)
+ * \param e Arrival event to be processed
  */
 void Scheduler::handle_proc_arrival(const Event& e)
 {
 	std::clog << "Scheduler: Process arrival handling started." << std::endl;
-
-
+	PCB *arrivalPCB = &procs.process_list[e.procID];
+	//generating the next CPU burst based on the average
+	arrivalPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(arrivalPCB->averageCPUBurstLength);
+	arrivalPCB->processState = READY;
+	//add to ready queue
+	ready_queue.push(arrivalPCB);
+	//send to dispatch
+	schedule();
 }
 
 /**
