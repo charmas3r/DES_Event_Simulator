@@ -86,6 +86,7 @@ void Scheduler::schedule()
  */
 void Scheduler::handle_proc_arrival(const Event& e)
 {
+	//TODO : need to add stats
 	std::clog << "Scheduler: Process arrival handling started." << std::endl;
 	PCB *arrivalPCB = &procs.process_list[e.procID];
 	//generating the next CPU burst based on the average
@@ -109,14 +110,15 @@ is checked, and if it is not empty, then a new process is selected and dispatche
  */
 void Scheduler::handle_cpu_completion(const Event& e)
 {
+	//TODO : need to add stats
 	std::clog << "Scheduler: Cpu completion handling started." << std::endl;
 	PCB *completedPCB = &procs.process_list[e.procID];
 	completedPCB->remainingCPUDuration -= completedPCB->nextCPUBurstLength;
 
 	if(completedPCB->remainingCPUDuration <= 0) {
-	    std::clog << "PCB: " << completedPCB->processID << " completed." << std::endl;
+	    std::clog << "PCB id:" << completedPCB->processID << " completed." << std::endl;
+	    //remove event from system
 	    completedPCB->processState = TERMINATED;
-        currentCPU.CPU_STATE = IDLE;
 	} else {
 	    // IO event initiation
         completedPCB->IOBurstTime = RandomNumGen().ranInt(30, 100);
@@ -124,23 +126,43 @@ void Scheduler::handle_cpu_completion(const Event& e)
         Event *IOCompletetionEvent = new Event(e.procID, IO_Burst_Completion, completedPCB->IOBurstTime);
         p_EQ->push(*IOCompletetionEvent);
 	}
-
+	currentCPU.CPU_STATE = IDLE;
+	schedule();
 }
 
 /**
- * \brief 
+ * \brief I/O Completion event represents that a process has completed its I/O burst. A new CPU burst time is
+randomly determined, and then this process is moved to the ready queue. If the CPU is now idle, then a
+process from the ready queue can be selected and dispatched.
  * \param e 
  */
 void Scheduler::handle_io_completion(const Event& e)
 {
+	//TODO : need to add stats
 	std::clog << "Scheduler: IO completion handling started." << std::endl;
+	PCB *IOCompletedPCB = &procs.process_list[e.procID];
+	// Assign new CPU burst time
+	IOCompletedPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(IOCompletedPCB->averageCPUBurstLength);
+	IOCompletedPCB->processState = READY;
+	ready_queue.push(IOCompletedPCB);
+	schedule();
 }
 
 /**
- * \brief 
+ * \brief  If the timer expires before the process’ CPU burst completes, then the timer
+expiration event triggers a context switch, moving that process from the CPU to the ready queue and
+selecting a new process from the ready queue to run next. If the process finishes its CPU burst before
+the timer expires, then the timer expiration event is a null event, and can just be discarded when it exits
+the event queue.
  * \param e 
  */
 void Scheduler::handle_timer_expiration(const Event& e)
 {
 	std::clog << "Scheduler: Timer expiration handling started." << std::endl;
+	PCB *expiredPCB = &procs.process_list[e.procID];
+	expiredPCB->processState = READY;
+	expiredPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(expiredPCB->averageCPUBurstLength);
+	ready_queue.push(expiredPCB);
+	currentCPU.CPU_STATE = IDLE;
+	schedule();
 }

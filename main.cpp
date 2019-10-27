@@ -101,15 +101,18 @@ int main(int argc, char* argv[]) {
     const int QUIT_TIME = 300000;	// 300,000 ms = 5 minutes
 
     Scheduler *p_scheduler;
-    if(scheduler_type == 1) {
-        std::cout << "****************Simulate FCFS scheduler****************************" << std::endl;
-		p_scheduler = new FCFSScheduler(nproc, &event_que);
-		//start simulation
-    } else if (scheduler_type == 2)
-    {
-        std::cout << "****************Simulate SJF scheduler****************************" << std::endl;
-		p_scheduler = new SJFScheduler(nproc, &event_que);
+
+    switch(scheduler_type) {
+        case 1 :
+            std::cout << "****************Simulate FCFS scheduler****************************" << std::endl;
+            p_scheduler = new FCFSScheduler(nproc, &event_que);
+            break;
+        case 2:
+            std::cout << "****************Simulate SJF scheduler****************************" << std::endl;
+            p_scheduler = new SJFScheduler(nproc, &event_que);
+            break;
     }
+
     // TODO: Make sure to add Process_Arrival events of all processes to the event queue
 
     int current_time = 0;
