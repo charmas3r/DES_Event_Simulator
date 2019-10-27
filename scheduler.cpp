@@ -72,8 +72,9 @@ void Scheduler::schedule()
 		pcb->processState = RUNNING;
 
 		//next we need to create the event for the time when the CPU burst will complete and add to
-		//event queue ..
-
+		//event queue ...
+		Event *futureEvent = new Event(pcb->processID, CPU_Burst_Completion, pcb->nextCPUBurstLength);
+		p_EQ->push(*futureEvent);
 	}
 
 }
@@ -97,12 +98,32 @@ void Scheduler::handle_proc_arrival(const Event& e)
 }
 
 /**
- * \brief 
+ * \brief CPU Burst Completion event represents that a process has completed its current CPU burst in the CPU.
+If this process has not yet completed its total execution time, then a random I/O time is determined for
+this process’s next I/O burst. We assume an infinite number of I/O devices, so a process can be
+immediately assigned to an I/O device without waiting. An I/O completion event generated for the
+time when the I/O burst will complete is added to the event queue. Alternatively, if this process has
+completed its total CPU time, then it can be removed from the system. In either case, the ready queue
+is checked, and if it is not empty, then a new process is selected and dispatched.
  * \param e 
  */
 void Scheduler::handle_cpu_completion(const Event& e)
 {
 	std::clog << "Scheduler: Cpu completion handling started." << std::endl;
+	PCB *completedPCB = &procs.process_list[e.procID];
+	completedPCB->remainingCPUDuration -= completedPCB->nextCPUBurstLength;
+
+	if(completedPCB->remainingCPUDuration <= 0) {
+	    std::clog << "PCB: " << completedPCB->processID << " completed." << std::endl;
+	    completedPCB->processState = TERMINATED;
+        currentCPU.CPU_STATE = IDLE;
+	} else {
+	    // IO event initiation
+        completedPCB->IOBurstTime = RandomNumGen().ranInt(30, 100);
+        // IO completion event generation
+        Event *IOCompletetionEvent = new Event(e.procID, IO_Burst_Completion, completedPCB->IOBurstTime);
+        p_EQ->push(*IOCompletetionEvent);
+	}
 
 }
 
