@@ -62,8 +62,7 @@ void Scheduler::schedule()
 	std::clog << "Scheduler: Processing scheduling (dispatch) initiated. " << std::endl;
 	//first check if CPU is idle and the queue isn't empty
 	if (currentCPU.CPU_STATE == IDLE && !ready_queue.empty()) {
-		PCB *pcb = ready_queue.front();
-		ready_queue.pop();
+		PCB *pcb = pop_ready_queue();
 		//dispatch to CPU
 		currentCPU.CPU_JOB = pcb;
 		//set the CPU state to BUSY
@@ -93,7 +92,7 @@ void Scheduler::handle_proc_arrival(const Event& e)
 	arrivalPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(arrivalPCB->averageCPUBurstLength);
 	arrivalPCB->processState = READY;
 	//add to ready queue
-	ready_queue.push(arrivalPCB);
+	add_to_ready_queue(arrivalPCB);
 	//send to dispatch
 	schedule();
 }
@@ -144,7 +143,7 @@ void Scheduler::handle_io_completion(const Event& e)
 	// Assign new CPU burst time
 	IOCompletedPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(IOCompletedPCB->averageCPUBurstLength);
 	IOCompletedPCB->processState = READY;
-	ready_queue.push(IOCompletedPCB);
+	add_to_ready_queue(IOCompletedPCB);
 	schedule();
 }
 
@@ -162,7 +161,7 @@ void Scheduler::handle_timer_expiration(const Event& e)
 	PCB *expiredPCB = &procs.process_list[e.procID];
 	expiredPCB->processState = READY;
 	expiredPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(expiredPCB->averageCPUBurstLength);
-	ready_queue.push(expiredPCB);
+	add_to_ready_queue(expiredPCB);
 	currentCPU.CPU_STATE = IDLE;
 	schedule();
 }
