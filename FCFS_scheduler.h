@@ -5,6 +5,8 @@
 class FCFSScheduler : public Scheduler
 {
 public:
+
+  std::queue<PCB*> ready_queue;
 	/**
 	 * \brief First Come First Served (SJF) Scheduler Constructor
 	 * \param nproc nproc Number of processes simulated
@@ -13,7 +15,7 @@ public:
 	FCFSScheduler(int nproc, EventQueue* p_event_queue)
 		: Scheduler(nproc, p_event_queue)
 	{
-//		procs.createPCBTable(nproc);
+	  // empty constructor
 	}
 
 	/**

@@ -10,7 +10,6 @@ enum Type {Process_Arrival, CPU_Burst_Completion, IO_Burst_Completion, Timer_Exp
 // Event class used for DES simulation
 class Event {
 public:
-
     // The type of an event
     Type type;
     // Time stamp (in unit of ms) when the event happens 
@@ -29,7 +28,6 @@ public:
     bool operator() (const Event& e1, const Event& e2) {
         return (e1.time > e2.time);
     }
-
 };
 
 // Class alias of Event Queue

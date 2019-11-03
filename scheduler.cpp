@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "scheduler.h"
 #include "event.h"
 #include "random.h"
@@ -10,43 +11,54 @@ Scheduler::Scheduler(int nproc, EventQueue* p_event_queue)
 {
 	// The queue must be populated with at least one initial event before the while loop
 	// commences. Add process arrival event for each process. Random distributions implemented in PCB class
+
 	p_EQ = p_event_queue;
+
+	//keeps track of last pcb's finish time and process load
+	currentCPU.previousFinish = 0;
+	currentCPU.processLoad = nproc;
+
+	long seed = -2;
+	RandomNumGen rg(seed);
 
 	for (int i = 0; i < nproc; i++) {
 		PCB pcb(i);
+		pcb.arrivalTime = rg.ranInt(1, 300000);
+		pcb.IOBurstTime = rg.ranInt(30, 100);
+		pcb.averageCPUBurstLength = rg.ranInt(5, 100);
+		pcb.totalCPUDuration = rg.ranInt(1000, 60000);
+		pcb.remainingCPUDuration = pcb.totalCPUDuration;
 		procs.process_list.push_back(pcb);
 
-		Event *event = new Event(i, Process_Arrival, pcb.startTime);
+		Event *event = new Event(i, Process_Arrival, pcb.arrivalTime);
 		p_EQ->push(*event);
 	}
 
 	// Initialize the CPU and start idling. No process dispatched yet.
 	currentCPU.CPU_STATE = IDLE;
-
-	std::clog << "Scheduler: Size of event queue is now: "+ std::to_string(p_EQ->size()) << std::endl;
 }
 
 /**
- * \brief 
- * \param e 
+ * \brief Handles the event upon arrival from main.cpp
+ * \param e Event being handled
  */
 void Scheduler::handle_the_event(const Event& e)
 {
 	// Call different handling function according to the event type
 	switch (e.type)
 	{
-	case Process_Arrival:
-		handle_proc_arrival(e);
-		break;
-	case CPU_Burst_Completion:
-		handle_cpu_completion(e);
-		break;
-	case IO_Burst_Completion:
-		handle_io_completion(e);
-		break;
-	case Timer_Expiration:
-		handle_timer_expiration(e);
-		break;
+		case Process_Arrival:
+			handle_proc_arrival(e);
+			break;
+		case CPU_Burst_Completion:
+			handle_cpu_completion(e);
+			break;
+		case IO_Burst_Completion:
+			handle_io_completion(e);
+			break;
+		case Timer_Expiration:
+			handle_timer_expiration(e);
+			break;
 	}
 }
 
@@ -59,10 +71,9 @@ void Scheduler::handle_the_event(const Event& e)
  */
 void Scheduler::schedule()
 {
-	std::clog << "Scheduler: Processing scheduling (dispatch) initiated. " << std::endl;
 	//first check if CPU is idle and the queue isn't empty
-	if (currentCPU.CPU_STATE == IDLE && !ready_queue.empty()) {
-		PCB *pcb = pop_ready_queue();
+	PCB *pcb = pop_ready_queue();
+	if (currentCPU.CPU_STATE == IDLE && pcb != nullptr) {
 		//dispatch to CPU
 		currentCPU.CPU_JOB = pcb;
 		//set the CPU state to BUSY
@@ -76,6 +87,7 @@ void Scheduler::schedule()
 		p_EQ->push(*futureEvent);
 	}
 
+
 }
 
 /**
@@ -83,16 +95,22 @@ void Scheduler::schedule()
  * confuse it with the event queue)
  * \param e Arrival event to be processed
  */
-void Scheduler::handle_proc_arrival(const Event& e)
-{
-	//TODO : need to add stats
-	std::clog << "Scheduler: Process arrival handling started." << std::endl;
+void Scheduler::handle_proc_arrival(const Event& e) {
 	PCB *arrivalPCB = &procs.process_list[e.procID];
 	//generating the next CPU burst based on the average
 	arrivalPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(arrivalPCB->averageCPUBurstLength);
 	arrivalPCB->processState = READY;
 	//add to ready queue
 	add_to_ready_queue(arrivalPCB);
+	//see if it's waiting
+	if(arrivalPCB->arrivalTime < currentCPU.previousFinish) {
+		//record for how long it has to wait.
+		arrivalPCB->readyQueueWaitingTime = currentCPU.previousFinish - arrivalPCB->arrivalTime;
+		//change start time to reflect real start time.
+		arrivalPCB->startTime = arrivalPCB->arrivalTime + arrivalPCB->readyQueueWaitingTime;
+	} else {
+		arrivalPCB->startTime = arrivalPCB->arrivalTime;
+	}
 	//send to dispatch
 	schedule();
 }
@@ -109,24 +127,76 @@ is checked, and if it is not empty, then a new process is selected and dispatche
  */
 void Scheduler::handle_cpu_completion(const Event& e)
 {
-	//TODO : need to add stats
-	std::clog << "Scheduler: Cpu completion handling started." << std::endl;
 	PCB *completedPCB = &procs.process_list[e.procID];
 	completedPCB->remainingCPUDuration -= completedPCB->nextCPUBurstLength;
 
 	if(completedPCB->remainingCPUDuration <= 0) {
-	    std::clog << "PCB id:" << completedPCB->processID << " completed." << std::endl;
-	    //remove event from system
-	    completedPCB->processState = TERMINATED;
+
+		//get finish time
+		int finishTime  = completedPCB->startTime +
+						  completedPCB->totalIOTime +
+						  completedPCB->totalCPUDuration;
+
+
+		if (finishTime < currentCPU.totalCPUOnTime) {
+			//get turnaround time
+			int turnaroundTime = completedPCB->totalIOTime +
+								 completedPCB->totalCPUDuration +
+								 completedPCB->readyQueueWaitingTime;
+
+
+			//add to cpu var stats
+			currentCPU.totalWaitTime += completedPCB->readyQueueWaitingTime;
+			currentCPU.totalTurnaroundTime += turnaroundTime;
+			currentCPU.totalUtilizedTime += (completedPCB->totalCPUDuration + completedPCB->totalIOTime);
+
+			//add process load counter
+			currentCPU.processCounter++;
+
+			//print stats once completed
+			std::cout << "Process: " << completedPCB->processID << std::endl;
+			std::cout << "Arrival time: " <<completedPCB->arrivalTime << " ms" << std::endl;
+			std::cout << "Start time: " << completedPCB->startTime << " ms"  << std::endl;
+			std::cout << "Finish time: " << finishTime << " ms"  << std::endl;
+			std::cout << "Turnaround time: " << turnaroundTime << " ms" << std::endl;
+			std::cout << "CPU time: " << completedPCB->totalCPUDuration << " ms" << std::endl;
+			std::cout << "IO time: " << completedPCB->totalIOTime << " ms" << std::endl;
+			std::cout << "Ready Queue Waiting Time: " << completedPCB->readyQueueWaitingTime << " ms"
+					  << std::endl << std::endl << std::endl;
+
+			currentCPU.previousFinish = finishTime;
+
+		}
+		//remove event from system
+		completedPCB->processState = TERMINATED;
 	} else {
-	    // IO event initiation
-        completedPCB->IOBurstTime = RandomNumGen().ranInt(30, 100);
-        // IO completion event generation
-        Event *IOCompletetionEvent = new Event(e.procID, IO_Burst_Completion, completedPCB->IOBurstTime);
-        p_EQ->push(*IOCompletetionEvent);
+		// IO event initiation
+		completedPCB->IOBurstTime = RandomNumGen().ranInt(30, 100);
+		// IO completion event generation
+		Event *IOCompletetionEvent = new Event(e.procID, IO_Burst_Completion, completedPCB->IOBurstTime);
+		p_EQ->push(*IOCompletetionEvent);
 	}
 	currentCPU.CPU_STATE = IDLE;
 	schedule();
+}
+
+
+/**
+ * \brief Function called from main.cpp after total cpu time is up to. It's purpose is to print system statistics.
+ */
+void Scheduler::print_cpu_stats()
+{
+
+	//get utilization rate and throughput
+	double utilizationRate = ((double)currentCPU.totalUtilizedTime / (double)currentCPU.totalCPUOnTime) * 100;
+	double throughput = ((double)currentCPU.processCounter / (double)currentCPU.totalCPUOnTime) * 1000;
+
+	std::cout << "============================================================" << std::endl;
+	std::cout << "CPU Utilization: " << utilizationRate <<"%" << std::endl;
+	std::cout << "Throughput: " << std::fixed << std::setprecision(4) << throughput << " jobs/s" << std::endl;
+	std::cout << "Average turnaround time: " << currentCPU.totalTurnaroundTime / currentCPU.processCounter << " ms" << std::endl;
+	std::cout << "Average waiting time: " << currentCPU.totalWaitTime / currentCPU.processCounter << " ms" << std::endl << std::endl;
+
 }
 
 /**
@@ -137,9 +207,9 @@ process from the ready queue can be selected and dispatched.
  */
 void Scheduler::handle_io_completion(const Event& e)
 {
-	//TODO : need to add stats
-	std::clog << "Scheduler: IO completion handling started." << std::endl;
 	PCB *IOCompletedPCB = &procs.process_list[e.procID];
+	// Save IO time to total IO duration
+	IOCompletedPCB->totalIOTime += IOCompletedPCB->IOBurstTime;
 	// Assign new CPU burst time
 	IOCompletedPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(IOCompletedPCB->averageCPUBurstLength);
 	IOCompletedPCB->processState = READY;
@@ -157,7 +227,6 @@ the event queue.
  */
 void Scheduler::handle_timer_expiration(const Event& e)
 {
-	std::clog << "Scheduler: Timer expiration handling started." << std::endl;
 	PCB *expiredPCB = &procs.process_list[e.procID];
 	expiredPCB->processState = READY;
 	expiredPCB->nextCPUBurstLength = RandomNumGen().CPUBurstRandom(expiredPCB->averageCPUBurstLength);

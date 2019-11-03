@@ -1,12 +1,18 @@
 #include "FCFS_scheduler.h"
 
+//FCFS uses a standard queue for as the ready queue for pcbs
 void FCFSScheduler::add_to_ready_queue(PCB* pcb)
 {
-	// TODO: Add your implementation here
+  ready_queue.push(pcb);
 }
 
+//Pop from standard ready queue
 PCB* FCFSScheduler::pop_ready_queue()
 {
-	// TODO: Add your implementation here
-	return nullptr;
+  if (ready_queue.size() != 0) {
+    PCB *pcb = ready_queue.front();
+    ready_queue.pop();
+    return pcb;
+  }
+    return nullptr;
 }

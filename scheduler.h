@@ -13,6 +13,13 @@ enum CPU_State {
 struct CPU {
 	PCB * CPU_JOB;
 	CPU_State CPU_STATE;
+        int previousFinish;
+        int processCounter;
+        int processLoad;
+        int totalWaitTime;
+        int totalTurnaroundTime;
+        const int totalCPUOnTime = 300000;
+        int totalUtilizedTime = 0;
 };
 
 // Base Scheduler Class
@@ -27,6 +34,8 @@ public:
 
     // Destructor
     virtual ~Scheduler() {};
+
+    void print_cpu_stats();
 
     /**
      * \brief Event handling function. It calls actual handling function according to the event type
@@ -86,9 +95,6 @@ protected:
 
 	// Pointer to the event queue
 	EventQueue* p_EQ;
-
-	// ReadyQueue of process
-	std::queue<PCB*> ready_queue;
 
 	CPU currentCPU;
 };
